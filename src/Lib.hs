@@ -77,10 +77,10 @@ encode c base padding alph = liftA2 (++) current rest
         rest = encode (drop base c) base padding alph
         current 
             | len >= base = mapLookup alph (take base c)
-            | otherwise   = (++ padding c) <$> mapLookup alph lastN
+            | otherwise   = (++ padding c) <$> mapLookup alph (c ++ replicate (base - len) '0')
             where 
-                len   = length c
-                lastN = c ++ replicate (base - len) '0'
+                len = length c
+                
 
 
 
@@ -90,14 +90,21 @@ encode64Padding x
             | len `mod` 4 == 0 = "="
             | len `mod` 2 == 0 = "=="
             | otherwise        = error "encode64Padding was invoked with {" ++ x ++ "} value"
-            where len = length x
+            where 
+                len = length x
 
 encode32Padding :: [String] -> String -> String
-encode32Padding l _ = replicate (length l `mod` 5 + 1 ) '='
+encode32Padding l _ 
+    | ln == 1   = "======"
+    | ln == 2   = "===="
+    | ln == 3   = "==="
+    | ln == 4   = "="
+    | otherwise = ""
+    where ln = length l `mod` 5
 
 encode32 :: String -> Either Error String
 encode32 x = mapM (to8Digits . toBits . ord) x >>= (\r -> encode (concat r) 5 (encode32Padding r) b32Enc)
 
 encode64 :: String -> Either Error String
-encode64 x =  mapM (to8Digits . toBits . ord) x >>= (\r -> encode (concat r) 6 encode64Padding b64Enc)
+encode64 x = mapM (to8Digits . toBits . ord) x >>= (\r -> encode (concat r) 6 encode64Padding b64Enc)
 

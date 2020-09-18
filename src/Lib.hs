@@ -2,6 +2,9 @@ module Lib
     ( encode64
     , encode32
     , encode16
+    , decode64
+    , decode32
+    , decode16
     ) where
 
 import Data.Char
@@ -44,15 +47,14 @@ type Error = String
 
 -- | The function converts the natural integer input to binary string representation.
 -- | > toBits 5 = "101"
-toBits :: Int -> String
+toBits :: (Integral a, Show a) => a -> String
 toBits 0 = ""
 toBits x = toBits (x `div` 2) ++ show (x `mod` 2)
 
 -- | Just basic binary to decimal conversion
-fromBits :: Int -> Int
+fromBits :: Integral p => p -> p
 fromBits 0 = 0
 fromBits i = 2 * fromBits (i `div` 10) + (i `mod` 10)
-
 
 -- | The function converts binary string to N digit form.
 toNDigits :: Int -> String -> Either Error String
@@ -83,7 +85,18 @@ encode c base padding alph = liftA2 (++) current rest
             | otherwise   = (++ padding c) <$> mapLookup alph (c ++ replicate (base - len) '0')
             where 
                 len = length c
-                
+
+
+decode :: String -> String
+decode []   = []
+decode c = chr (fromBits (read (take 8 c) :: Int)) : decode (drop 8 c)
+
+baseDecoding :: (Ord k, Show k) => [k] -> Int -> M.Map k String -> Either String String
+baseDecoding [] _ _ = Right []
+baseDecoding c padTrim alph = case (\r -> take (length r - padTrim) r) . concat . concat <$> mapM (mapLookup alph) c of
+                                        Right val -> if length val `mod` 8 /= 0 then Left "Wrong input" else Right $ decode val
+                                        Left err -> Left err
+
 encode64Padding :: String -> String
 encode64Padding x 
             | len `mod` 4 == 0 = "="
@@ -92,7 +105,7 @@ encode64Padding x
             where 
                 len = length x
 
-encode32Padding :: [String] -> String -> String
+encode32Padding :: Foldable t => t a -> p -> String
 encode32Padding l _ 
     | ln == 1   = "======"
     | ln == 2   = "===="
@@ -101,10 +114,19 @@ encode32Padding l _
     | otherwise = ""
     where ln = length l `mod` 5
 
+decode32Padding :: (Num p1, Foldable t) => t a -> p1
+decode32Padding l
+    | ln == 6   = 2
+    | ln == 4   = 5
+    | ln == 3   = 1
+    | ln == 1   = 3
+    | otherwise = 0
+    where ln = length l
+
 encode16Padding :: String -> String
 encode16Padding _ = ""
 
-baseEncoding :: Int -> ([String] -> (String -> String)) -> M.Map String Char -> String -> Either Error String
+baseEncoding :: Traversable t => Int -> (t String -> String -> String) -> M.Map String Char -> t Char -> Either Error String
 baseEncoding base padding mp x = mapM (to8Digits . toBits . ord) x >>= (\r -> encode (concat r) base (padding r) mp)
 
 encode16 :: String -> Either Error String
@@ -115,3 +137,12 @@ encode32 = baseEncoding 5 encode32Padding b32Enc
 
 encode64 :: String -> Either Error String
 encode64 = baseEncoding 6 (const encode64Padding) b64Enc
+
+decode64 :: String -> Either Error String
+decode64 x = let pads = length $ filter (== '=') x in baseDecoding (filter (/= '=') x) (pads * 2) b64Dec
+
+decode32 :: String -> Either String String
+decode32 x = baseDecoding (filter (/= '=') x) (decode32Padding $ filter (== '=') x) b32Dec
+
+decode16 :: String -> Either Error String
+decode16 x = baseDecoding x 0 b16Dec

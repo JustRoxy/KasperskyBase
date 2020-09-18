@@ -13,5 +13,8 @@ encoding64Test = hspec $ do
         (length . filter (== '=') $ f "Mannn") `shouldBe` (1 :: Int)
     it "correct results" $ 
         f "FNASDISFNOIAFIOASFNOIAFNIAGFNAGOANGDIGNWAIGNGNSOGIASNGISAGANISGOASDIGNASG" `shouldBe` "Rk5BU0RJU0ZOT0lBRklPQVNGTk9JQUZOSUFHRk5BR09BTkdESUdOV0FJR05HTlNPR0lBU05HSVNBR0FOSVNHT0FTRElHTkFTRw==" --lmao test
+
         -- TODO: QuickTest random values instead of this crap
-    where f = fromRight "" . encode64
+    where 
+        f = fromRight "" . encode64
+        g = fromRight "" . decode64

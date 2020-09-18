@@ -1,6 +1,7 @@
 module Lib
     ( encode64
     , encode32
+    , encode16
     ) where
 
 import Data.Char
@@ -11,6 +12,8 @@ b64 :: String
 b64 = ['A'..'Z'] ++ ['a'..'z'] ++ ['0'..'9'] ++"+/"
 b32 :: String
 b32 = ['A'..'Z'] ++ ['2'..'7']
+b16 :: String
+b16 = ['0'..'9'] ++ ['A'..'F']
 
 baseMap :: Int -> [Int] -> [String] 
 baseMap base nums = case mapM (toNDigits base . toBits) nums of
@@ -19,23 +22,23 @@ baseMap base nums = case mapM (toNDigits base . toBits) nums of
 
 b64BaseMap :: [String]
 b64BaseMap = baseMap 6 [0..63]
-
 b32BaseMap :: [String]
 b32BaseMap = baseMap 5 [0..31]
-                
+b16BaseMap :: [String]
+b16BaseMap = baseMap 4 [0..15]
 
 b64Enc :: M.Map String Char 
 b64Enc = M.fromList (zip b64BaseMap b64) 
-
 b64Dec :: M.Map Char String 
 b64Dec = M.fromList (zip b64 b64BaseMap)
-
 b32Enc :: M.Map String Char
 b32Enc = M.fromList (zip b32BaseMap b32)
-
 b32Dec :: M.Map Char String
 b32Dec = M.fromList (zip b32 b32BaseMap)
-
+b16Enc :: M.Map String Char
+b16Enc = M.fromList (zip b16BaseMap b16)
+b16Dec :: M.Map Char String
+b16Dec = M.fromList (zip b16 b16BaseMap)
 
 type Error = String
 
@@ -81,10 +84,6 @@ encode c base padding alph = liftA2 (++) current rest
             where 
                 len = length c
                 
-
-
-
-
 encode64Padding :: String -> String
 encode64Padding x 
             | len `mod` 4 == 0 = "="
@@ -102,9 +101,17 @@ encode32Padding l _
     | otherwise = ""
     where ln = length l `mod` 5
 
+encode16Padding :: String -> String
+encode16Padding _ = ""
+
+baseEncoding :: Int -> ([String] -> (String -> String)) -> M.Map String Char -> String -> Either Error String
+baseEncoding base padding mp x = mapM (to8Digits . toBits . ord) x >>= (\r -> encode (concat r) base (padding r) mp)
+
+encode16 :: String -> Either Error String
+encode16 = baseEncoding 4 (const encode16Padding) b16Enc
+
 encode32 :: String -> Either Error String
-encode32 x = mapM (to8Digits . toBits . ord) x >>= (\r -> encode (concat r) 5 (encode32Padding r) b32Enc)
+encode32 = baseEncoding 5 encode32Padding b32Enc
 
 encode64 :: String -> Either Error String
-encode64 x = mapM (to8Digits . toBits . ord) x >>= (\r -> encode (concat r) 6 encode64Padding b64Enc)
-
+encode64 = baseEncoding 6 (const encode64Padding) b64Enc

@@ -1,8 +1,10 @@
 module Lib
     ( encode64
+    , encodeUrlSafe
     , encode32
     , encode16
     , decode64
+    , decodeUrlSafe
     , decode32
     , decode16
     ) where
@@ -13,8 +15,13 @@ import qualified Data.Map            as M
 
 b64 :: String
 b64 = ['A'..'Z'] ++ ['a'..'z'] ++ ['0'..'9'] ++"+/"
+
+b64Url :: String
+b64Url = ['A'..'Z'] ++ ['a'..'z'] ++ ['0'..'9'] ++"-_"
+
 b32 :: String
 b32 = ['A'..'Z'] ++ ['2'..'7']
+
 b16 :: String
 b16 = ['0'..'9'] ++ ['A'..'F']
 
@@ -37,6 +44,12 @@ b64Enc = M.fromList (zip b64BaseMap b64)
 
 b64Dec :: M.Map Char String
 b64Dec = M.fromList (zip b64 b64BaseMap)
+
+bUrlEnc :: M.Map String Char
+bUrlEnc = M.fromList (zip b64BaseMap b64Url)
+
+bUrlDec :: M.Map Char String
+bUrlDec = M.fromList (zip b64Url b64BaseMap)
 
 b32Enc :: M.Map String Char
 b32Enc = M.fromList (zip b32BaseMap b32)
@@ -144,10 +157,19 @@ encode32 = baseEncoding 5 encode32Padding b32Enc
 encode64 :: String -> Either Error String
 encode64 = baseEncoding 6 (const encode64Padding) b64Enc
 
-decode64 :: String -> Either Error String
-decode64 x = let pads = length $ filter (== '=') x in baseDecoding (filter (/= '=') x) (pads * 2) b64Dec
+encodeUrlSafe :: String -> Either Error String
+encodeUrlSafe = baseEncoding 6 (const encode64Padding) bUrlEnc
 
-decode32 :: String -> Either String String
+decodeUrl64 :: String -> M.Map Char String ->  Either Error String
+decodeUrl64 x = let pads = length $ filter (== '=') x in baseDecoding (filter (/= '=') x) (pads * 2)
+
+decode64 :: String -> Either Error String
+decode64 x = decodeUrl64 x b64Dec
+
+decodeUrlSafe :: String -> Either Error String
+decodeUrlSafe x = decodeUrl64 x bUrlDec
+
+decode32 :: String -> Either Error String
 decode32 x = baseDecoding (filter (/= '=') x) (decode32Padding $ filter (== '=') x) b32Dec
 
 decode16 :: String -> Either Error String

@@ -7,6 +7,7 @@ module BaseCrypto
     , decodeUrlSafe
     , decode32
     , decode16
+    , Error
     ) where
 
 import           Control.Applicative

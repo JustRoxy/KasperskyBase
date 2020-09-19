@@ -11,7 +11,26 @@ module BaseCrypto
     , decodeUrlSafe
     , decode32
     , decode16
+    , Error
     )
 ```
+module BasedArray contains
 
-Feel free to use it all
+```haskell
+module BasedArray
+  ( ArrayContent
+  , Base
+  , fromList
+  , slice
+  )
+```
+
+**ArrayContent**
+```haskell
+data ArrayContent = B Base | Str String
+```
+
+**Base**
+```haskell
+data Base = Base64 String | Base32 String | Base16 String | Base64Url String
+```

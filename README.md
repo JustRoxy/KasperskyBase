@@ -1,8 +1,8 @@
 # Base16 | Base32 | Base64 encoder and decoder
 
-module Lib contains
+module BaseCrypto contains
 ```haskell
-module Lib
+module BaseCrypto
     ( encode64
     , encodeUrlSafe
     , encode32

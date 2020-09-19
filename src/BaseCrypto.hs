@@ -1,4 +1,4 @@
-module Lib
+module BaseCrypto
     ( encode64
     , encodeUrlSafe
     , encode32
@@ -30,6 +30,7 @@ baseMap base nums = case mapM (toNDigits base . toBits) nums of
   Right s -> s
   Left _  -> error "Impossible condition"
 
+
 b64BaseMap :: [String]
 b64BaseMap = baseMap 6 [0..63]
 
@@ -39,29 +40,32 @@ b32BaseMap = baseMap 5 [0..31]
 b16BaseMap :: [String]
 b16BaseMap = baseMap 4 [0..15]
 
+mMap :: Ord k => [k] -> [a] -> M.Map k a
+mMap x y = M.fromList $ zip x y
+
 b64Enc :: M.Map String Char
-b64Enc = M.fromList (zip b64BaseMap b64)
+b64Enc = mMap b64BaseMap b64
 
 b64Dec :: M.Map Char String
-b64Dec = M.fromList (zip b64 b64BaseMap)
+b64Dec = mMap b64 b64BaseMap
 
 bUrlEnc :: M.Map String Char
-bUrlEnc = M.fromList (zip b64BaseMap b64Url)
+bUrlEnc = mMap b64BaseMap b64Url
 
 bUrlDec :: M.Map Char String
-bUrlDec = M.fromList (zip b64Url b64BaseMap)
+bUrlDec = mMap b64Url b64BaseMap
 
 b32Enc :: M.Map String Char
-b32Enc = M.fromList (zip b32BaseMap b32)
+b32Enc = mMap b32BaseMap b32
 
 b32Dec :: M.Map Char String
-b32Dec = M.fromList (zip b32 b32BaseMap)
+b32Dec = mMap b32 b32BaseMap
 
 b16Enc :: M.Map String Char
-b16Enc = M.fromList (zip b16BaseMap b16)
+b16Enc = mMap b16BaseMap b16
 
 b16Dec :: M.Map Char String
-b16Dec = M.fromList (zip b16 b16BaseMap)
+b16Dec = mMap b16 b16BaseMap
 
 type Error = String
 
@@ -112,8 +116,14 @@ decode c  = chr (fromBits (read (take 8 c) :: Int)) : decode (drop 8 c)
 baseDecoding :: (Ord k, Show k) => [k] -> Int -> M.Map k String -> Either String String
 baseDecoding [] _ _ = Right []
 baseDecoding c padTrim alph = case (\r -> take (length r - padTrim) r) . concat . concat <$> mapM (mapLookup alph) c of
-  Right val -> if length val `mod` 8 /= 0 then Left "Wrong input" else Right $ decode val
+  Right val ->
+              Right $
+                if len `mod` 8 /= 0
+                then decode (take (len - len `mod` 8) val)
+                else decode val
+                where len = length val
   Left err -> Left err
+
 
 encode64Padding :: String -> String
 encode64Padding x
@@ -136,7 +146,7 @@ encode32Padding l _
 decode32Padding :: (Num p1, Foldable t) => t a -> p1
 decode32Padding l
     | ln == 6   = 2
-    | ln == 4   = 5
+    | ln == 4   = 4
     | ln == 3   = 1
     | ln == 1   = 3
     | otherwise = 0

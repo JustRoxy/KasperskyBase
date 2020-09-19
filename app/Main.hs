@@ -1,7 +1,7 @@
 module Main where
 
 import Control.Monad(forever)
-import Lib
+import BaseCrypto
 
 main :: IO ()
 main = forever $ do 

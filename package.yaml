@@ -25,6 +25,8 @@ dependencies:
 - hspec
 - QuickCheck
 - vector
+- bytestring
+- template-haskell
 
 library:
   source-dirs: src

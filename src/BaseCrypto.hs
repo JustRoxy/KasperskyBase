@@ -129,7 +129,7 @@ baseDecoding c padTrim alph = case (\r -> take (length r - padTrim) r) . concat 
 encode64Padding :: String -> String
 encode64Padding x
   | ln `mod` 4 == 0 = "="
-  | ln `mod` 2 == 0 = "=="
+  | even ln = "=="
   | otherwise       = error "encode64Padding was invoked with {" ++ x ++ "} value"
     where
       ln = length x

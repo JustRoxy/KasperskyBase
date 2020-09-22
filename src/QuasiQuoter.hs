@@ -5,13 +5,10 @@
 module QuasiQuoter where
 
 import qualified Language.Haskell.TH as TH
-import Language.Haskell.TH.Quote
-import BaseCrypto
-import Data.Char (isAlpha, isDigit)
-import Control.Applicative
-
-s :: String
-s = "hehe"
+import           Language.Haskell.TH.Quote
+import           BaseCrypto
+import           Data.Char (isAlpha, isDigit)
+import           Control.Applicative
 
 baser :: (String -> TH.ExpQ) -> QuasiQuoter
 baser x = QuasiQuoter { quoteExp = x,

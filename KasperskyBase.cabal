@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 561c66f49548b9b7422d539716a101f1552bf0942bb45ee3c5608480f97afe18
+-- hash: 738bd70080a1cc583eaf63f206b308690234ffbf5a2ba002dfa58c4b48678f0c
 
 name:           KasperskyBase
 version:        0.1.0.0
@@ -37,7 +37,6 @@ library
   build-depends:
       QuickCheck
     , base >=4.7 && <5
-    , bytestring
     , containers
     , hspec
     , template-haskell
@@ -55,7 +54,6 @@ executable KasperskyBase-exe
       KasperskyBase
     , QuickCheck
     , base >=4.7 && <5
-    , bytestring
     , containers
     , hspec
     , template-haskell
@@ -74,7 +72,6 @@ test-suite KasperskyBase-test
       KasperskyBase
     , QuickCheck
     , base >=4.7 && <5
-    , bytestring
     , containers
     , hspec
     , template-haskell

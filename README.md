@@ -18,29 +18,38 @@ module BaseCrypto
 
 ```haskell
 module BasedArray
-  ( ArrayContent
-  , Base
-  , fromList
-  , slice
-  )
+    ( fromString
+    , example
+    , mkSlice
+    )
 ```
+
+**module QuasiQuoter**
+```haskell
+module QuasiQuoter
+    ( base64
+    , base32
+    , base16
+    )
+    
+[base64|ZXhhbXBsZQ==|] -- QuasiQuotation
+```
+
 
 **ArrayContent**
 ```haskell
-data ArrayContent = B Base | Str String
+newtype VectorContent = VectorContent Word8
+  deriving (Show, Storable)
 ```
 
-**Base**
+**fromString**
 ```haskell
-data Base = Base64 String | Base32 String | Base16 String | Base64Url String
+fromString :: String -> V.Vector VectorContent
 ```
 
-**fromList**
+**O(1) mkSlice -> ExpQ, using [Vector.Slice](https://hackage.haskell.org/package/vector-0.12.1.2/docs/Data-Vector.html#v:slice)**
 ```haskell
-fromList :: [ArrayContent] -> Either Error (Vector String)
-```
+mkSlice :: Integer -> Integer -> TH.Name -> TH.ExpQ
 
-**[O(1) slice](https://hackage.haskell.org/package/vector-0.12.1.2/docs/Data-Vector.html#v:slice)**
-```haskell
-Data.Vector.slice :: Int -> Int -> Vector a -> Vector a
+print ($(mkSlice 1 2 'example))
 ```

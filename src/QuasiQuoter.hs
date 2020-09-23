@@ -2,7 +2,11 @@
 {-# LANGUAGE TemplateHaskell #-}
 
 
-module QuasiQuoter where
+module QuasiQuoter
+    ( base64
+    , base32
+    , base16
+    ) where
 
 import qualified Language.Haskell.TH as TH
 import           Language.Haskell.TH.Quote

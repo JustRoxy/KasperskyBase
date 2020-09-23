@@ -1,7 +1,11 @@
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
 {-# LANGUAGE QuasiQuotes #-}
 {-# LANGUAGE TemplateHaskell #-}
-module BasedArray where
+module BasedArray
+    ( fromString
+    , example
+    , mkSlice
+    ) where
 
 import           BaseCrypto
 import           Control.Applicative

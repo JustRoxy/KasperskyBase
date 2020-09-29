@@ -5,28 +5,33 @@ module BasedArray
     ( fromString
     , example
     , mkSlice
+    , vectorPointer
     ) where
 
-import           BaseCrypto
-import           Control.Applicative
-import qualified Data.Vector         as V
-import           Data.Vector.Storable.Mutable (Storable)
 import           QuasiQuoter
 import           Data.Char (ord)
 import           Data.Word (Word8)
 import qualified Language.Haskell.TH as TH
 import           Language.Haskell.TH.Syntax
+import           Foreign.Storable
+import           Foreign.ForeignPtr
+--               Well, there was a Storable vector after all. Idk how did i missed that
+import           Data.Vector.Storable as VS
 
 newtype VectorContent = VectorContent Word8
   deriving (Show, Storable)
 
-fromString :: String -> V.Vector VectorContent
-fromString x = V.fromList (map (VectorContent . fromIntegral . ord) x)
+fromString :: String -> VS.Vector VectorContent
+fromString x = VS.fromList (Prelude.map (VectorContent . fromIntegral . ord) x)
 
-example :: V.Vector VectorContent
+example :: VS.Vector VectorContent
 example = fromString [base64|ZXhhbXBsZQ==|]
 
-slice = V.slice
+vectorPointer :: (Storable a) => VS.Vector a -> (ForeignPtr a, Int, Int)
+vectorPointer = unsafeToForeignPtr
+
+slice :: (Storable a) => Int -> Int -> VS.Vector a -> VS.Vector a
+slice = VS.slice
 
 mkSlice :: Integer -> Integer -> TH.Name -> TH.ExpQ
 mkSlice x y s= apply
@@ -38,6 +43,6 @@ mkSlice x y s= apply
                     (intVar y)) --applying y to slice x (slice x y)
                   (variable s) --applying s to slice x y (slice x y s)
     where
-      apply x y = TH.appE x y
+      apply = TH.appE
       intVar = TH.litE . IntegerL
       variable = TH.varE

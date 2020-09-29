@@ -1,6 +1,5 @@
-{-# LANGUAGE QuasiQuotes #-}
+{-# LANGUAGE QuasiQuotes     #-}
 {-# LANGUAGE TemplateHaskell #-}
-
 
 module QuasiQuoter
     ( base64
@@ -8,11 +7,10 @@ module QuasiQuoter
     , base16
     ) where
 
-import qualified Language.Haskell.TH as TH
-import           Language.Haskell.TH.Quote
 import           BaseCrypto
-import           Data.Char (isAlpha, isDigit)
-import           Control.Applicative
+import           Data.Char                 (isAlpha, isDigit)
+import qualified Language.Haskell.TH       as TH
+import           Language.Haskell.TH.Quote
 
 baser :: (String -> TH.ExpQ) -> QuasiQuoter
 baser x = QuasiQuoter { quoteExp = x,
@@ -21,13 +19,16 @@ baser x = QuasiQuoter { quoteExp = x,
                         quoteType = undefined
         }
 
+base64 :: QuasiQuoter
 base64 = baser (\s -> [|runBase decode64 s|])
+
+base32 :: QuasiQuoter
 base32 = baser (\s -> [|runBase decode32 s|])
+
+base16 :: QuasiQuoter
 base16 = baser (\s -> [|runBase decode16 s|])
 
 runBase :: (String -> Either Error String) -> String -> String
-runBase f x = case f $ filter (\x -> isAlpha x || isDigit x || x `elem` "=_-") x of
-              Right x -> x
-              Left x -> "Error: " ++ x
-
-
+runBase f v = case f $ filter (\x -> isAlpha x || isDigit x || x `elem` "=_-") v of
+              Right a -> a
+              Left a  -> "Error: " ++ a

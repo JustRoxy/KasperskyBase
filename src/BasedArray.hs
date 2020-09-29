@@ -1,6 +1,6 @@
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
-{-# LANGUAGE QuasiQuotes #-}
-{-# LANGUAGE TemplateHaskell #-}
+{-# LANGUAGE QuasiQuotes                #-}
+{-# LANGUAGE TemplateHaskell            #-}
 module BasedArray
     ( fromString
     , example
@@ -9,15 +9,15 @@ module BasedArray
     , recreateVector
     ) where
 
-import           QuasiQuoter
-import           Data.Char (ord)
-import           Data.Word (Word8)
-import qualified Language.Haskell.TH as TH
-import           Language.Haskell.TH.Syntax
-import           Foreign.Storable
+import           Data.Char                  (ord)
+import           Data.Word                  (Word8)
 import           Foreign.ForeignPtr
+import           Foreign.Storable
+import qualified Language.Haskell.TH        as TH
+import           Language.Haskell.TH.Syntax
+import           QuasiQuoter
 --               Well, there was a Storable vector after all. Idk how did i missed that
-import           Data.Vector.Storable as VS
+import           Data.Vector.Storable       as VS
 
 newtype VectorContent = VectorContent Word8
   deriving (Eq, Show, Storable)

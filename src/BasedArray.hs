@@ -6,6 +6,7 @@ module BasedArray
     , example
     , mkSlice
     , vectorPointer
+    , recreateVector
     ) where
 
 import           QuasiQuoter
@@ -19,7 +20,7 @@ import           Foreign.ForeignPtr
 import           Data.Vector.Storable as VS
 
 newtype VectorContent = VectorContent Word8
-  deriving (Show, Storable)
+  deriving (Eq, Show, Storable)
 
 fromString :: String -> VS.Vector VectorContent
 fromString x = VS.fromList (Prelude.map (VectorContent . fromIntegral . ord) x)
@@ -27,8 +28,14 @@ fromString x = VS.fromList (Prelude.map (VectorContent . fromIntegral . ord) x)
 example :: VS.Vector VectorContent
 example = fromString [base64|ZXhhbXBsZQ==|]
 
+-- | The result of this function looks like (Memory pointer, start, offset):(0x000000000730d2a0,0,7)
 vectorPointer :: (Storable a) => VS.Vector a -> (ForeignPtr a, Int, Int)
 vectorPointer = unsafeToForeignPtr
+-- | The function takes ForeignPtr, start and offset, and recreates StorableVector of a, where a should be Storable
+-- | let (p, s, o) = vectorPointer x
+-- | recreateVector p s o == x
+recreateVector :: (Storable a) => ForeignPtr a -> Int -> Int -> Vector a
+recreateVector = unsafeFromForeignPtr
 
 slice :: (Storable a) => Int -> Int -> VS.Vector a -> VS.Vector a
 slice = VS.slice

@@ -26,6 +26,8 @@ dependencies:
 - QuickCheck
 - vector
 - template-haskell
+- cereal
+- bytestring
 
 library:
   source-dirs: src

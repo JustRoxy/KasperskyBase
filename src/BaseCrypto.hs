@@ -1,45 +1,45 @@
 module BaseCrypto
-    ( encode64
-    , encodeUrlSafe
-    , encode32
-    , encode16
-    , decode64
-    , decodeUrlSafe
-    , decode32
-    , decode16
-    , Error
-    ) where
+  ( encode64,
+    encodeUrlSafe,
+    encode32,
+    encode16,
+    decode64,
+    decodeUrlSafe,
+    decode32,
+    decode16,
+    Error,
+  )
+where
 
-import           Control.Applicative
-import           Data.Char
-import qualified Data.Map            as M
+import Control.Applicative (Applicative (liftA2))
+import Data.Char (chr, ord)
+import qualified Data.Map as M
 
 b64 :: String
-b64 = ['A'..'Z'] ++ ['a'..'z'] ++ ['0'..'9'] ++"+/"
+b64 = ['A' .. 'Z'] ++ ['a' .. 'z'] ++ ['0' .. '9'] ++ "+/"
 
 b64Url :: String
-b64Url = ['A'..'Z'] ++ ['a'..'z'] ++ ['0'..'9'] ++"-_"
+b64Url = ['A' .. 'Z'] ++ ['a' .. 'z'] ++ ['0' .. '9'] ++ "-_"
 
 b32 :: String
-b32 = ['A'..'Z'] ++ ['2'..'7']
+b32 = ['A' .. 'Z'] ++ ['2' .. '7']
 
 b16 :: String
-b16 = ['0'..'9'] ++ ['A'..'F']
+b16 = ['0' .. '9'] ++ ['A' .. 'F']
 
 baseMap :: Int -> [Int] -> [String]
 baseMap base nums = case mapM (toNDigits base . toBits) nums of
   Right s -> s
-  Left _  -> error "Impossible condition"
-
+  Left _ -> error "Impossible condition"
 
 b64BaseMap :: [String]
-b64BaseMap = baseMap 6 [0..63]
+b64BaseMap = baseMap 6 [0 .. 63]
 
 b32BaseMap :: [String]
-b32BaseMap = baseMap 5 [0..31]
+b32BaseMap = baseMap 5 [0 .. 31]
 
 b16BaseMap :: [String]
-b16BaseMap = baseMap 4 [0..15]
+b16BaseMap = baseMap 4 [0 .. 15]
 
 mMap :: Ord k => [k] -> [a] -> M.Map k a
 mMap x y = M.fromList $ zip x y
@@ -86,7 +86,8 @@ toNDigits :: Int -> String -> Either Error String
 toNDigits n s
   | len > n = Left ("Unsupported character " ++ [chr $ fromBits (read s :: Int)] ++ " with binary form " ++ s)
   | otherwise = Right $ replicate (n - len) '0' ++ s
-    where len = length s
+  where
+    len = length s
 
 -- | The function converts binary string to eightfold digits form.
 -- | > to8Digits 10 = 00000010
@@ -95,7 +96,7 @@ to8Digits = toNDigits 8
 
 mapLookup :: (Ord k, Show k) => M.Map k a -> k -> Either Error [a]
 mapLookup alph c = case M.lookup c alph of
-  Just a  -> Right [a]
+  Just a -> Right [a]
   Nothing -> Left ("No such key in the alphabet: " ++ show c)
 
 -- | The all-together function that encodes String c on Base base with Padding Function padding and with Alphabet alph
@@ -106,52 +107,53 @@ encode c base padding alph = liftA2 (++) current rest
     rest = encode (drop base c) base padding alph
     current
       | len >= base = mapLookup alph (take base c)
-      | otherwise   = (++ padding c) <$> mapLookup alph (c ++ replicate (base - len) '0')
-          where
-            len = length c
+      | otherwise = (++ padding c) <$> mapLookup alph (c ++ replicate (base - len) '0')
+      where
+        len = length c
 
 decode :: String -> String
 decode [] = []
-decode c  = chr (fromBits (read (take 8 c) :: Int)) : decode (drop 8 c)
+decode c = chr (fromBits (read (take 8 c) :: Int)) : decode (drop 8 c)
 
 baseDecoding :: (Ord k, Show k) => [k] -> Int -> M.Map k String -> Either String String
 baseDecoding [] _ _ = Right []
 baseDecoding c padTrim alph = case (\r -> take (length r - padTrim) r) . concat . concat <$> mapM (mapLookup alph) c of
   Right val ->
-              Right $
-                if len `mod` 8 /= 0
-                then decode (take (len - len `mod` 8) val)
-                else decode val
-                where len = length val
+    Right $
+      if len `mod` 8 /= 0
+        then decode (take (len - len `mod` 8) val)
+        else decode val
+    where
+      len = length val
   Left err -> Left err
-
 
 encode64Padding :: String -> String
 encode64Padding x
   | ln `mod` 4 == 0 = "="
   | even ln = "=="
-  | otherwise       = error "encode64Padding was invoked with {" ++ x ++ "} value"
-    where
-      ln = length x
+  | otherwise = error "encode64Padding was invoked with {" ++ x ++ "} value"
+  where
+    ln = length x
 
 encode32Padding :: Foldable t => t a -> p -> String
 encode32Padding l _
-    | ln == 1   = "======"
-    | ln == 2   = "===="
-    | ln == 3   = "==="
-    | ln == 4   = "="
-    | otherwise = ""
-    where
-      ln = length l `mod` 5
+  | ln == 1 = "======"
+  | ln == 2 = "===="
+  | ln == 3 = "==="
+  | ln == 4 = "="
+  | otherwise = ""
+  where
+    ln = length l `mod` 5
 
 decode32Padding :: (Num p1, Foldable t) => t a -> p1
 decode32Padding l
-    | ln == 6   = 2
-    | ln == 4   = 4
-    | ln == 3   = 1
-    | ln == 1   = 3
-    | otherwise = 0
-    where ln = length l
+  | ln == 6 = 2
+  | ln == 4 = 4
+  | ln == 3 = 1
+  | ln == 1 = 3
+  | otherwise = 0
+  where
+    ln = length l
 
 encode16Padding :: String -> String
 encode16Padding _ = ""
@@ -171,7 +173,7 @@ encode64 = baseEncoding 6 (const encode64Padding) b64Enc
 encodeUrlSafe :: String -> Either Error String
 encodeUrlSafe = baseEncoding 6 (const encode64Padding) bUrlEnc
 
-decodeUrl64 :: String -> M.Map Char String ->  Either Error String
+decodeUrl64 :: String -> M.Map Char String -> Either Error String
 decodeUrl64 x = let pads = length $ filter (== '=') x in baseDecoding (filter (/= '=') x) (pads * 2)
 
 decode64 :: String -> Either Error String

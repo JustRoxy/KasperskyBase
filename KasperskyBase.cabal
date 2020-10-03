@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 06b6d9b8637d1fd17d1acd44c8eb743d91360ea30387af3c4607d588419abcee
+-- hash: 1ce4bca16b3882226f57753f08b2adcb0784be9c6b04d8217cf7e233c0c32b7e
 
 name:           KasperskyBase
 version:        0.1.0.0
@@ -29,7 +29,6 @@ library
   exposed-modules:
       BaseCrypto
       BasedArray
-      Image
       QuasiQuoter
   other-modules:
       Paths_KasperskyBase

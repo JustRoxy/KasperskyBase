@@ -1,5 +1,6 @@
 {-# LANGUAGE QuasiQuotes #-}
 {-# LANGUAGE TemplateHaskell #-}
+{-# LANGUAGE OverloadedStrings #-}
 
 module QuasiQuoter
   ( base64,
@@ -8,11 +9,14 @@ module QuasiQuoter
     runBase,
   )
 where
-
-import BaseCrypto (Error, decode16, decode32, decode64)
-import Data.Char (isAlpha, isDigit)
+import Data.Word8 ( isAlpha, isDigit )
 import qualified Language.Haskell.TH as TH
 import Language.Haskell.TH.Quote (QuasiQuoter (..))
+import Data.ByteString.Base64 as B ( encodeBase64' ) 
+import Data.ByteString.Base32 as B ( encodeBase32' ) 
+import Data.ByteString.Base16 as B ( encodeBase16' ) 
+import Data.ByteString as BS ( elem, filter, ByteString )
+
 
 baser :: (String -> TH.ExpQ) -> QuasiQuoter
 baser x =
@@ -24,15 +28,13 @@ baser x =
     }
 
 base64 :: QuasiQuoter
-base64 = baser (\s -> [|runBase decode64 s|])
+base64 = baser (\s -> [|runBase B.encodeBase64' s|])
 
 base32 :: QuasiQuoter
-base32 = baser (\s -> [|runBase decode32 s|])
+base32 = baser (\s -> [|runBase B.encodeBase32' s|])
 
 base16 :: QuasiQuoter
-base16 = baser (\s -> [|runBase decode16 s|])
+base16 = baser (\s -> [|runBase B.encodeBase16' s|])
 
-runBase :: (String -> Either Error String) -> String -> String
-runBase f v = case f $ filter (\x -> isAlpha x || isDigit x || x `elem` "=_-") v of
-  Right a -> a
-  Left a -> "Error: " ++ a
+runBase :: (BS.ByteString -> BS.ByteString) -> ByteString -> ByteString
+runBase f v = f $ BS.filter (\x -> isAlpha x || isDigit x || x `BS.elem` "=_-") v

@@ -13,7 +13,7 @@ module BasedArray
   )
 where
 
-import Data.ByteString (ByteString, empty, pack, unpack)
+import Data.ByteString (foldl, ByteString, empty, pack, unpack)
 --               Well, there was a Storable vector after all. Idk how did i missed that
 
 import Data.Vector.Storable as VS
@@ -31,29 +31,26 @@ import qualified Language.Haskell.TH as TH
 import Language.Haskell.TH.Syntax (Lit (IntegerL))
 import QuasiQuoter (base64)
 
-newtype VectorContent = VectorContent Word8
-  deriving (Eq, Show, Storable)
+type Allocated a = VS.Vector a
 
-packVec :: ByteString -> VS.Vector VectorContent
-packVec x = VS.fromList (Prelude.map VectorContent (unpack $ x))
+packVec :: ByteString -> Allocated Word8
+packVec = VS.fromList . unpack
 
-unpackVec :: VS.Vector VectorContent -> ByteString
-unpackVec x = pack (Prelude.map (\(VectorContent w) -> w) $ VS.toList x) -- Vector [VectorContent 1, VectorContent 0] -> [1,0] -> "10"
+unpackVec :: Allocated Word8 -> ByteString
+unpackVec = pack . VS.toList -- Vector [1,0] -> [1,0] -> "10"
 
-example :: VS.Vector VectorContent
+example :: Allocated Word8
 example = packVec [base64|ZXhhbXBsZQ==|]
 
 -- | The result of this function looks like (Memory pointer, start, offset):(0x000000000730d2a0,0,7)
-vectorPointer :: (Storable a) => VS.Vector a -> (ForeignPtr a, Int, Int)
+vectorPointer :: (Storable a) => Allocated a -> (ForeignPtr a, Int, Int)
 vectorPointer = unsafeToForeignPtr
 
--- | The function takes ForeignPtr, start and offset, and recreates StorableVector of a, where a should be Storable
--- | let (p, s, o) = vectorPointer x
--- | recreateVector p s o == x
+-- |The function takes `ForeignPtr`, start and offset, and recreates StorableVector of `a`, where `a` should be `Storable`.
 recreateVector :: (Storable a) => ForeignPtr a -> Int -> Int -> Vector a
 recreateVector = unsafeFromForeignPtr
 
-slice :: (Storable a) => Int -> Int -> VS.Vector a -> VS.Vector a
+slice :: (Storable a) => Int -> Int -> Allocated a -> Allocated a
 slice = VS.slice
 
 mkSlice :: Integer -> Integer -> TH.Name -> TH.ExpQ

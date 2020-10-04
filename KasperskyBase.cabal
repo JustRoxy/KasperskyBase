@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 738bd70080a1cc583eaf63f206b308690234ffbf5a2ba002dfa58c4b48678f0c
+-- hash: ac68c67d4d07c57d9b4a0f0fc04eec4e8fc75507660fc0280951b31340ab6d92
 
 name:           KasperskyBase
 version:        0.1.0.0
@@ -27,7 +27,6 @@ source-repository head
 
 library
   exposed-modules:
-      BaseCrypto
       BasedArray
       QuasiQuoter
   other-modules:
@@ -37,10 +36,15 @@ library
   build-depends:
       QuickCheck
     , base >=4.7 && <5
+    , base16
+    , base32
+    , base64
+    , bytestring
     , containers
     , hspec
     , template-haskell
     , vector
+    , word8
   default-language: Haskell2010
 
 executable KasperskyBase-exe
@@ -54,10 +58,15 @@ executable KasperskyBase-exe
       KasperskyBase
     , QuickCheck
     , base >=4.7 && <5
+    , base16
+    , base32
+    , base64
+    , bytestring
     , containers
     , hspec
     , template-haskell
     , vector
+    , word8
   default-language: Haskell2010
 
 test-suite KasperskyBase-test
@@ -72,8 +81,13 @@ test-suite KasperskyBase-test
       KasperskyBase
     , QuickCheck
     , base >=4.7 && <5
+    , base16
+    , base32
+    , base64
+    , bytestring
     , containers
     , hspec
     , template-haskell
     , vector
+    , word8
   default-language: Haskell2010

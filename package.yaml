@@ -26,6 +26,11 @@ dependencies:
 - QuickCheck
 - vector
 - template-haskell
+- bytestring
+- base64
+- base32
+- base16
+- word8
 
 library:
   source-dirs: src

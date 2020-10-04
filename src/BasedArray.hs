@@ -1,7 +1,7 @@
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
+{-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE QuasiQuotes #-}
 {-# LANGUAGE TemplateHaskell #-}
-{-# LANGUAGE OverloadedStrings #-}
 
 module BasedArray
   ( packVec,
@@ -13,10 +13,9 @@ module BasedArray
   )
 where
 
-import Data.ByteString (pack, unpack)
+import Data.ByteString (ByteString, empty, pack, unpack)
 --               Well, there was a Storable vector after all. Idk how did i missed that
 
-import Data.Serialize (Serialize, decode, encode)
 import Data.Vector.Storable as VS
   ( Vector,
     fromList,
@@ -35,11 +34,11 @@ import QuasiQuoter (base64)
 newtype VectorContent = VectorContent Word8
   deriving (Eq, Show, Storable)
 
-packVec :: Serialize a => a -> VS.Vector VectorContent
-packVec x = VS.fromList (Prelude.map VectorContent (unpack $ encode x))
+packVec :: ByteString -> VS.Vector VectorContent
+packVec x = VS.fromList (Prelude.map VectorContent (unpack $ x))
 
-unpackVec :: Serialize a => VS.Vector VectorContent -> Either String a
-unpackVec x = decode $ pack (Prelude.map (\(VectorContent w) -> w) $ VS.toList x) -- Vector [VectorContent 1, VectorContent 0] -> [1,0] -> "10"
+unpackVec :: VS.Vector VectorContent -> ByteString
+unpackVec x = pack (Prelude.map (\(VectorContent w) -> w) $ VS.toList x) -- Vector [VectorContent 1, VectorContent 0] -> [1,0] -> "10"
 
 example :: VS.Vector VectorContent
 example = packVec [base64|ZXhhbXBsZQ==|]

@@ -9,6 +9,7 @@ module QuasiQuoter
     runBase,
   )
 where
+  
 import Data.Word8 ( isAlpha, isDigit )
 import qualified Language.Haskell.TH as TH
 import Language.Haskell.TH.Quote (QuasiQuoter (..))
@@ -16,7 +17,6 @@ import Data.ByteString.Base64 as B ( encodeBase64' )
 import Data.ByteString.Base32 as B ( encodeBase32' ) 
 import Data.ByteString.Base16 as B ( encodeBase16' ) 
 import Data.ByteString as BS ( elem, filter, ByteString )
-
 
 baser :: (String -> TH.ExpQ) -> QuasiQuoter
 baser x =

@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 30052fe6c49ad2920066c3b92e849ad1d8f39a2df80d437973f2bdf204ae9cf1
+-- hash: ac68c67d4d07c57d9b4a0f0fc04eec4e8fc75507660fc0280951b31340ab6d92
 
 name:           KasperskyBase
 version:        0.1.0.0
@@ -40,7 +40,6 @@ library
     , base32
     , base64
     , bytestring
-    , cereal
     , containers
     , hspec
     , template-haskell
@@ -63,7 +62,6 @@ executable KasperskyBase-exe
     , base32
     , base64
     , bytestring
-    , cereal
     , containers
     , hspec
     , template-haskell
@@ -87,7 +85,6 @@ test-suite KasperskyBase-test
     , base32
     , base64
     , bytestring
-    , cereal
     , containers
     , hspec
     , template-haskell

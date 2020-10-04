@@ -26,7 +26,6 @@ dependencies:
 - QuickCheck
 - vector
 - template-haskell
-- cereal
 - bytestring
 - base64
 - base32

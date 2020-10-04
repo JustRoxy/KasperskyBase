@@ -62,12 +62,12 @@ mkSlice x y s =
   apply
     ( apply
         ( apply
-            (variable $ TH.mkName "slice") --applying x to slice (slice x)
+            (variable $ TH.mkName "slice") -- applying x to slice (slice x)
             (intVar x)
         )
-        (intVar y) --applying y to slice x (slice x y)
+        (intVar y) -- applying y to slice x (slice x y)
     )
-    (variable s) --applying s to slice x y (slice x y s)
+    (variable s) -- applying s to slice x y (slice x y s)
   where
     apply = TH.appE
     intVar = TH.litE . IntegerL

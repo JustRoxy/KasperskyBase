@@ -2,7 +2,6 @@
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE QuasiQuotes #-}
 {-# LANGUAGE TemplateHaskell #-}
-{-# LANGUAGE GADTs #-}
 
 module BasedArray
   ( packVec,
@@ -14,42 +13,55 @@ module BasedArray
   )
 where
 
-import Data.ByteString (ByteString, pack, unpack)
+import qualified Data.ByteString as BS
 --               Well, there was a Storable vector after all. Idk how did i missed that
-
-import Data.Vector.Storable as VS
-  ( Vector,
-    fromList,
-    slice,
-    toList,
-    unsafeFromForeignPtr,
-    unsafeToForeignPtr,
-  )
+import qualified Data.ByteString.Internal as BS
+import qualified Data.Vector.Storable as VS
 import Data.Word (Word8)
-import Foreign.ForeignPtr (ForeignPtr)
-import Foreign.Storable (Storable)
+import Foreign.ForeignPtr (ForeignPtr, castForeignPtr)
+import Foreign.Storable (Storable (sizeOf))
 import qualified Language.Haskell.TH as TH
 import Language.Haskell.TH.Syntax (Lit (IntegerL))
 import QuasiQuoter (base64)
 
+sizeOfElem :: (Storable a) => VS.Vector a -> Int
+sizeOfElem = sizeOf . VS.head
+
+-- >>> sizeOfElem (VS.fromList [1,2,3] :: VS.Vector Word8)
+-- 1
+
+byteStringToVector :: BS.ByteString -> Allocated
+byteStringToVector bs = vec
+  where
+    vec = VS.unsafeFromForeignPtr (castForeignPtr ptr) (allign off) (allign len) -- Generates VS.Vector from (pointer) (alligned offset) (alligned length) 
+    (ptr, off, len) = BS.toForeignPtr bs
+    allign = flip div $ sizeOfElem vec -- X `div` sizeOfElem vec
+
+vectorToByteString :: Allocated -> BS.ByteString
+vectorToByteString vec = let (ptr, off, len) = VS.unsafeToForeignPtr vec 
+  in 
+    BS.fromForeignPtr (castForeignPtr ptr) (allign off) (allign len)
+  where
+    allign = (* sizeOfElem vec)
+
 type Allocated = VS.Vector Word8
 
-packVec :: ByteString -> Allocated
-packVec = VS.fromList . unpack
+packVec :: BS.ByteString -> Allocated
+packVec = byteStringToVector
 
-unpackVec :: Allocated -> ByteString
-unpackVec = pack . VS.toList -- Vector [1,0] -> [1,0] -> "10"
+unpackVec :: Allocated -> BS.ByteString
+unpackVec = vectorToByteString
 
 example :: Allocated
 example = packVec [base64|ZXhhbXBsZQ==|]
 
 -- | The result of this function looks like (Memory pointer, start, offset):(0x000000000730d2a0,0,7)
 vectorPointer :: Allocated -> (ForeignPtr Word8, Int, Int)
-vectorPointer = unsafeToForeignPtr
+vectorPointer = VS.unsafeToForeignPtr
 
--- |The function takes `ForeignPtr`, start and offset, and recreates StorableVector of `a`, where `a` should be `Storable`.
+-- | The function takes `ForeignPtr Word8`, start and offset, and recreates StorableVector of `Word8`.
 recreateVector :: ForeignPtr Word8 -> Int -> Int -> Allocated
-recreateVector = unsafeFromForeignPtr
+recreateVector = VS.unsafeFromForeignPtr
 
 slice :: Int -> Int -> Allocated -> Allocated
 slice = VS.slice

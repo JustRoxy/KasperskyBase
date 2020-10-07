@@ -33,16 +33,16 @@ sizeOfElem = sizeOf . VS.head
 byteStringToVector :: BS.ByteString -> Allocated
 byteStringToVector bs = vec
   where
-    vec = VS.unsafeFromForeignPtr (castForeignPtr ptr) (allign off) (allign len) -- Generates VS.Vector from (pointer) (alligned offset) (alligned length)
+    vec = VS.unsafeFromForeignPtr (castForeignPtr ptr) (align off) (align len) -- Generates VS.Vector from (pointer) (alligned offset) (alligned length)
     (ptr, off, len) = BS.toForeignPtr bs
-    allign = flip div $ sizeOfElem vec -- X `div` sizeOfElem vec
+    align = flip div $ sizeOfElem vec -- X `div` sizeOfElem vec
 
 vectorToByteString :: Allocated -> BS.ByteString
 vectorToByteString vec =
   let (ptr, off, len) = VS.unsafeToForeignPtr vec
-   in BS.fromForeignPtr (castForeignPtr ptr) (allign off) (allign len)
+   in BS.fromForeignPtr (castForeignPtr ptr) (align off) (align len)
   where
-    allign = (* sizeOfElem vec)
+    align = (* sizeOfElem vec)
 
 type Allocated = VS.Vector Word8
 

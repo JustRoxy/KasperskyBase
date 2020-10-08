@@ -1,27 +1,16 @@
-# Base16 | Base32 | Base64 encoder and decoder
+# idk what the project does
 
-**module BaseCrypto**
-```haskell
-module BaseCrypto
-    ( encode64
-    , encodeUrlSafe
-    , encode32
-    , encode16
-    , decode64
-    , decodeUrlSafe
-    , decode32
-    , decode16
-    , Error
-    )
-```
 **module BasedArray**
 
 ```haskell
 module BasedArray
-    ( fromString
-    , example
-    , mkSlice
-    )
+  ( packVec,
+    unpackVec,
+    example,
+    mkSlice,
+    vectorPointer,
+    recreateVector,
+  )
 ```
 
 **module QuasiQuoter**
@@ -30,21 +19,25 @@ module QuasiQuoter
     ( base64
     , base32
     , base16
+    , runBase
     )
     
 [base64|ZXhhbXBsZQ==|] -- QuasiQuotation
 ```
 
 
-**ArrayContent**
+**Allocated**
 ```haskell
-newtype VectorContent = VectorContent Word8
-  deriving (Show, Storable)
+type Allocated = VS.Vector Word8
 ```
 
-**fromString**
+**packing | unpacking**
 ```haskell
-fromString :: String -> V.Vector VectorContent
+packVec :: BS.ByteString -> Allocated
+packVec = byteStringToVector
+
+unpackVec :: Allocated -> BS.ByteString
+unpackVec = vectorToByteString
 ```
 
 **O(1) mkSlice -> ExpQ, using [Vector.Slice](https://hackage.haskell.org/package/vector-0.12.1.2/docs/Data-Vector.html#v:slice)**
